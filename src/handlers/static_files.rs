@@ -1,6 +1,7 @@
 use salvo::prelude::*;
 use salvo::serve_static::StaticFile;
 use std::path::PathBuf;
+use crate::config::get_config;
 
 /// 静态文件服务处理函数
 /// 
@@ -32,5 +33,7 @@ pub async fn serve_index(res: &mut Response) {
 /// 
 /// 返回静态文件处理器
 pub fn create_static_handler() -> impl Handler {
-    StaticFile::new(PathBuf::from("static"))
+    let config = get_config();
+    let storage_path = &config.storage_path;
+    StaticFile::new(storage_path)
 }
