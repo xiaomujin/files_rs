@@ -2,87 +2,56 @@ use salvo::prelude::*;
 use salvo::http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
 use salvo::http::ResBody;
 use crate::config::get_config;
-use uuid::Uuid;
 use bytes::Bytes;
 
 /// 文件下载处理函数
 /// 
-/// 根据文件 ID 下载文件，支持通过路径参数指定文件
+/// 根据文件名下载文件，文件名作为文件唯一标识符
 /// 
 /// # 参数
 /// 
 /// - `req`: HTTP 请求对象
 /// - `res`: HTTP 响应对象
-/// - `depot`: 用于存储请求上下文的仓库
+/// - `_depot`: 用于存储请求上下文的仓库
 #[handler]
 pub async fn download(req: &mut Request, res: &mut Response, _depot: &mut Depot) {
     let config = get_config();
     
-    // 从路径参数获取文件 ID
-    let file_id: String = match req.param("id") {
+    let file_name: String = match req.param("id") {
         Some(id) => id,
         None => {
             res.status_code(StatusCode::BAD_REQUEST);
             res.render(Json(serde_json::json!({
                 "success": false,
-                "message": "缺少文件 ID"
+                "message": "缺少文件名"
             })));
             return;
         }
     };
     
-    // 解析 UUID
-    let _uuid = match Uuid::parse_str(&file_id) {
-        Ok(u) => u,
-        Err(_) => {
+    match validate_filename(&file_name) {
+        ValidationResult::Invalid(msg) => {
             res.status_code(StatusCode::BAD_REQUEST);
             res.render(Json(serde_json::json!({
                 "success": false,
-                "message": "无效的文件 ID 格式"
+                "message": msg
             })));
             return;
         }
-    };
+        ValidationResult::Valid => {}
+    }
     
-    // 查找文件（遍历存储目录查找匹配的文件）
-    let storage_path = &config.storage_path;
-    if !storage_path.exists() {
+    let file_path = config.storage_path.join(&file_name);
+    
+    if !file_path.exists() {
         res.status_code(StatusCode::NOT_FOUND);
         res.render(Json(serde_json::json!({
             "success": false,
-            "message": "存储目录不存在"
+            "message": "文件不存在"
         })));
         return;
     }
     
-    // 查找以该 UUID 开头的文件
-    let mut found_file: Option<std::path::PathBuf> = None;
-    if let Ok(entries) = std::fs::read_dir(storage_path) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if let Some(file_name) = path.file_name() {
-                let name = file_name.to_string_lossy();
-                if name.starts_with(&file_id) {
-                    found_file = Some(path);
-                    break;
-                }
-            }
-        }
-    }
-    
-    let file_path = match found_file {
-        Some(p) => p,
-        None => {
-            res.status_code(StatusCode::NOT_FOUND);
-            res.render(Json(serde_json::json!({
-                "success": false,
-                "message": "文件不存在"
-            })));
-            return;
-        }
-    };
-    
-    // 读取文件内容
     let file_data = match std::fs::read(&file_path) {
         Ok(d) => d,
         Err(e) => {
@@ -95,13 +64,6 @@ pub async fn download(req: &mut Request, res: &mut Response, _depot: &mut Depot)
         }
     };
     
-    // 获取文件名（去除 UUID 前缀）
-    let file_name = file_path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("download");
-    
-    // 设置响应头
     res.add_header(CONTENT_TYPE, "application/octet-stream", true)
         .unwrap();
     res.add_header(
@@ -111,6 +73,36 @@ pub async fn download(req: &mut Request, res: &mut Response, _depot: &mut Depot)
     )
     .unwrap();
     
-    // 返回文件内容
     res.body = ResBody::Once(Bytes::from(file_data));
+}
+
+/// 文件名验证结果
+/// 
+/// 用于返回文件名验证的结果
+enum ValidationResult {
+    Valid,
+    Invalid(String),
+}
+
+/// 验证文件名是否合法
+/// 
+/// 检查文件名是否包含路径遍历等非法字符
+/// 
+/// # 参数
+/// 
+/// - `file_name`: 要验证的文件名
+/// 
+/// # 返回值
+/// 
+/// 返回验证结果
+fn validate_filename(file_name: &str) -> ValidationResult {
+    if file_name.is_empty() {
+        return ValidationResult::Invalid("文件名不能为空".to_string());
+    }
+    
+    if file_name.contains('/') || file_name.contains('\\') || file_name.contains("..") {
+        return ValidationResult::Invalid("文件名包含非法字符".to_string());
+    }
+    
+    ValidationResult::Valid
 }

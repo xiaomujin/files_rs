@@ -29,9 +29,9 @@ async fn main() {
                 .hoop(SecureMaxSize(1024 * 1024 * 1024 * 10))
                 .post(handle_upload),
         )
-        .push(Router::with_path("/download/<id>").get(handle_download))
-        .push(Router::with_path("/files/<id>").delete(delete_file))
-        .push(Router::with_path("/files/<id>").put(rename_file));
+        .push(Router::with_path("/download/{id}").get(handle_download))
+        .push(Router::with_path("/files/{id}").delete(delete_file))
+        .push(Router::with_path("/files/{id}").put(rename_file));
 
     let router = Router::new()
         .hoop(cors)
