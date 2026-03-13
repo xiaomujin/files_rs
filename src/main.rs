@@ -2,10 +2,7 @@ mod config;
 mod handlers;
 mod models;
 
-use handlers::{
-    create_static_handler, delete_file, handle_download, handle_upload, list_files, rename_file,
-    serve_index,
-};
+use handlers::{delete_file, handle_download, handle_upload, list_files, rename_file, serve_index};
 use salvo::cors::{Any, Cors};
 use salvo::http::request::SecureMaxSize;
 use salvo::prelude::*;
@@ -37,11 +34,13 @@ async fn main() {
         .hoop(cors)
         .get(serve_index)
         .push(Router::with_path("/api").push(api_router))
-        .push(Router::with_path("static/{**path}").get(
-            StaticDir::new(["uploads"])
-                .auto_list(true)           // 开发时方便查看目录结构
-                .include_dot_files(false)
-        ));
+        .push(
+            Router::with_path("static/{**path}").get(
+                StaticDir::new(["uploads"])
+                    .auto_list(true) // 开发时方便查看目录结构
+                    .include_dot_files(false),
+            ),
+        );
     println!("{:?}", router);
     let acceptor = TcpListener::new("0.0.0.0:3000").bind().await;
     Server::new(acceptor).serve(router).await;

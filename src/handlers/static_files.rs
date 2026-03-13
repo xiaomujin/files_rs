@@ -1,7 +1,11 @@
 use salvo::prelude::*;
 use salvo::serve_static::StaticFile;
-use std::path::PathBuf;
 use crate::config::get_config;
+use rust_embed::RustEmbed;
+
+#[derive(RustEmbed)]
+#[folder = "static/"]
+struct Assets;
 
 /// 静态文件服务处理函数
 /// 
@@ -12,13 +16,16 @@ use crate::config::get_config;
 /// - `res`: HTTP 响应对象
 #[handler]
 pub async fn serve_index(res: &mut Response) {
-    let static_path = PathBuf::from("static/index.html");
+    let path = "index.html";
     
-    if static_path.exists() {
-        if let Ok(content) = std::fs::read_to_string(&static_path) {
-            res.render(Text::Html(content));
-            return;
-        }
+    if let Some(content) = Assets::get(path) {
+        let mime = mime_guess::from_path(path)
+            .first_or_octet_stream()
+            .to_string();
+        
+        res.headers_mut().insert("content-type", mime.parse().unwrap());
+        let _ = res.write_body(content.data.to_vec());
+        return;
     }
     
     res.status_code(StatusCode::NOT_FOUND);
