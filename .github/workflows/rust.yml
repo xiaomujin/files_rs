@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-musl
-            name: files_rs-x86_64-unknown-linux-musl
+            name: LocalFiles-x86_64-unknown-linux-musl
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: target/${{ matrix.target }}/release/files_rs
+          path: target/${{ matrix.target }}/release/LocalFiles
 
   release-win:
     runs-on: windows-latest
@@ -40,7 +40,7 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            name: files_rs-x86_64-pc-windows-msvc.exe
+            name: LocalFiles-x86_64-pc-windows-msvc.exe
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
@@ -54,4 +54,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: target/${{ matrix.target }}/release/files_rs.exe
+          path: target/${{ matrix.target }}/release/LocalFiles.exe
