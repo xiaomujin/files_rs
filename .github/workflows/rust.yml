@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-musl
-            name: sp_web-x86_64-unknown-linux-musl
+            name: files_rs-x86_64-unknown-linux-musl
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: target/${{ matrix.target }}/release/sp_web
+          path: target/${{ matrix.target }}/release/files_rs
 
   release-win:
     runs-on: windows-latest
@@ -40,7 +40,7 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            name: sp_web-x86_64-pc-windows-msvc.exe
+            name: files_rs-x86_64-pc-windows-msvc.exe
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
@@ -54,4 +54,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: target/${{ matrix.target }}/release/sp_web.exe
+          path: target/${{ matrix.target }}/release/files_rs.exe
