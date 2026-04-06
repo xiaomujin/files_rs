@@ -18,7 +18,7 @@ jobs:
           - target: x86_64-unknown-linux-musl
             name: LocalFiles-x86_64-unknown-linux-musl
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@v1
         with:
@@ -42,7 +42,7 @@ jobs:
           - target: x86_64-pc-windows-msvc
             name: LocalFiles-x86_64-pc-windows-msvc.exe
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@v1
         with:
