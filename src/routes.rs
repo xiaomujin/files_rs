@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::handlers::{
-    delete_file, handle_download, handle_upload, list_files, rename_file, serve_index,
+    delete_file, handle_download, handle_upload, list_files, rename_file, serve_asset, serve_index,
 };
 use salvo::cors::{Any, Cors};
 use salvo::http::request::SecureMaxSize;
@@ -28,8 +28,9 @@ pub fn build_router(config: &Config) -> Router {
         .hoop(cors)
         .get(serve_index)
         .push(Router::with_path("/api").push(api_router))
+        .push(Router::with_path("/assets/{**path}").get(serve_asset))
         .push(
-            Router::with_path("static/{**path}").get(
+            Router::with_path("/static/{**path}").get(
                 StaticDir::new(config.storage_path.clone())
                     .auto_list(true)
                     .include_dot_files(false),
