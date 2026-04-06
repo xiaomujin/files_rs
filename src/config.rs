@@ -29,25 +29,12 @@ impl Config {
         }
     }
 
-    /// 创建默认配置
-    /// 
-    /// 使用默认值初始化配置
-    /// 
-    /// # 返回值
-    /// 
-    /// 返回使用默认值的 Config 实例
-    pub fn default() -> Self {
-        Config {
-            storage_path: PathBuf::from("./uploads"),
-        }
-    }
-
     /// 确保存储目录存在
-    /// 
+    ///
     /// 如果存储目录不存在，将自动创建
-    /// 
+    ///
     /// # 错误
-    /// 
+    ///
     /// 如果创建目录失败，返回 IO 错误
     pub fn ensure_storage_dir(&self) -> std::io::Result<()> {
         if !self.storage_path.exists() {

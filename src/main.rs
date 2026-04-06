@@ -1,6 +1,8 @@
 mod config;
+mod filename;
 mod handlers;
 mod models;
+mod storage;
 
 use handlers::{delete_file, handle_download, handle_upload, list_files, rename_file, serve_index};
 use salvo::cors::{Any, Cors};
@@ -11,7 +13,7 @@ use salvo::prelude::*;
 async fn main() {
     tracing_subscriber::fmt().init();
 
-    let _config = config::get_config();
+    let config = config::get_config();
 
     let cors = Cors::new()
         .allow_origin(Any)
@@ -36,7 +38,7 @@ async fn main() {
         .push(Router::with_path("/api").push(api_router))
         .push(
             Router::with_path("static/{**path}").get(
-                StaticDir::new(["uploads"])
+                StaticDir::new(config.storage_path.clone())
                     .auto_list(true) // 开发时方便查看目录结构
                     .include_dot_files(false),
             ),

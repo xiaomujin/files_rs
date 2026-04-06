@@ -115,55 +115,6 @@ impl FileInfo {
     }
 }
 
-/// 生成唯一的文件名
-/// 
-/// 如果目标路径已存在同名文件，则添加时间戳后缀
-/// 
-/// # 参数
-/// 
-/// - `storage_path`: 存储目录路径
-/// - `original_name`: 原始文件名
-/// 
-/// # 返回值
-/// 
-/// 返回唯一的文件名
-pub fn generate_unique_filename(storage_path: &Path, original_name: &str) -> String {
-    let file_path = storage_path.join(original_name);
-    
-    if !file_path.exists() {
-        return original_name.to_string();
-    }
-    
-    let (stem, extension) = if let Some(dot_pos) = original_name.rfind('.') {
-        (&original_name[..dot_pos], &original_name[dot_pos..])
-    } else {
-        (original_name, "")
-    };
-    
-    let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
-    let new_name = format!("{}_{}{}", stem, timestamp, extension);
-    
-    let new_path = storage_path.join(&new_name);
-    if new_path.exists() {
-        let mut counter = 1;
-        loop {
-            let unique_name = format!("{}_{}_{}", stem, timestamp, counter);
-            let final_name = if extension.is_empty() {
-                unique_name
-            } else {
-                format!("{}{}", unique_name, extension)
-            };
-            
-            if !storage_path.join(&final_name).exists() {
-                return final_name;
-            }
-            counter += 1;
-        }
-    }
-    
-    new_name
-}
-
 /// 文件列表响应结构体
 /// 
 /// 用于返回文件列表查询结果

@@ -2,7 +2,7 @@
 protocol = "sparse"
 
 [source.crates-io]
-replace-with = 'ustc'  # 或其他镜像
+replace-with = 'bytedance'  # 或其他镜像
 
 # 中国科学技术大学
 [source.ustc]
