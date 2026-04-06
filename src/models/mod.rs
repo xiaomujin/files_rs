@@ -1,3 +1,3 @@
-mod file_info;
+mod files;
 
-pub use file_info::*;
+pub use files::{FileInfo, FileListResponse, RenameRequest, UploadResponse};

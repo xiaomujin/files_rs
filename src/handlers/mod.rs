@@ -1,9 +1,5 @@
-mod upload;
-mod download;
 mod files;
-mod static_files;
+mod frontend;
 
-pub use upload::handle_upload;
-pub use download::handle_download;
-pub use files::{list_files, delete_file, rename_file};
-pub use static_files::serve_index;
+pub use files::{delete_file, handle_download, handle_upload, list_files, rename_file};
+pub use frontend::serve_index;
