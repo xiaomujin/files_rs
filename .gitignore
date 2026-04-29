@@ -3,3 +3,4 @@
 /.idea
 /uploads
 /.claude
+/.cargo/config.toml

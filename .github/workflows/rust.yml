@@ -55,3 +55,29 @@ jobs:
         with:
           name: ${{ matrix.name }}
           path: target/${{ matrix.target }}/release/LocalFiles.exe
+
+  release-mac:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-13
+            name: LocalFiles-x86_64-apple-darwin
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: LocalFiles-aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+          target: ${{ matrix.target }}
+      - name: Run cargo build
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.name }}
+          path: target/${{ matrix.target }}/release/LocalFiles
