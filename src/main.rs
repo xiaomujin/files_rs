@@ -14,6 +14,8 @@ async fn main() {
     let config = config::get_config();
     let router = routes::build_router(config);
 
-    let acceptor = TcpListener::new("0.0.0.0:3000").bind().await;
+    let addr = config.addr();
+    println!("服务启动于: {}", addr);
+    let acceptor = TcpListener::new(addr).bind().await;
     Server::new(acceptor).serve(router).await;
 }

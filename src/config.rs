@@ -7,12 +7,19 @@ const CONFIG_FILE: &str = "config.json5";
 /// 应用程序配置结构体
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
+    /// 绑定地址
+    #[serde(default = "default_bind")]
+    pub bind: String,
     /// 服务端口号
     #[serde(default = "default_port")]
     pub port: u16,
     /// 文件存储路径
     #[serde(default = "default_storage_path")]
     pub storage_path: PathBuf,
+}
+
+fn default_bind() -> String {
+    "0.0.0.0".to_string()
 }
 
 fn default_port() -> u16 {
@@ -26,6 +33,7 @@ fn default_storage_path() -> PathBuf {
 impl Default for Config {
     fn default() -> Self {
         Config {
+            bind: default_bind(),
             port: default_port(),
             storage_path: default_storage_path(),
         }
@@ -77,15 +85,23 @@ impl Config {
     fn save(&self, path: &PathBuf) -> std::io::Result<()> {
         let content = format!(
             r#"{{
+    // 绑定地址
+    bind: "{}",
     // 服务端口号
     port: {},
     // 文件上传存储路径
     storage_path: "{}",
 }}"#,
+            self.bind,
             self.port,
             self.storage_path.to_string_lossy(),
         );
         std::fs::write(path, content)
+    }
+
+    /// 获取完整的绑定地址 (bind:port)
+    pub fn addr(&self) -> String {
+        format!("{}:{}", self.bind, self.port)
     }
 
     /// 确保存储目录存在
