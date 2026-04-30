@@ -232,16 +232,16 @@ async function loadFiles() {
 
     try {
         const response = await fetch(`${API_BASE}/files`);
-        if (!response.ok) {
-            throw new Error('请求失败，请稍后重试');
-        }
-
-        const data = await response.json();
+        const result = await response.json();
         if (requestId !== state.loadRequestId) {
             return;
         }
 
-        renderFiles(data.files || [], data.total || 0);
+        if (result.code !== 0) {
+            throw new Error(result.message || '请求失败，请稍后重试');
+        }
+
+        renderFiles(result.data?.files || [], result.data?.total || 0);
     } catch (error) {
         if (requestId !== state.loadRequestId) {
             return;
@@ -293,23 +293,12 @@ function uploadFile(file) {
 
         xhr.addEventListener('load', async () => {
             try {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    const response = JSON.parse(xhr.responseText || '{}');
-                    if (response.success) {
-                        showToast(`文件“${file.name}”上传成功`, 'success');
-                        await loadFiles();
-                    } else {
-                        showToast(response.message || '上传失败', 'error');
-                    }
+                const response = JSON.parse(xhr.responseText || '{}');
+                if (response.code === 0) {
+                    showToast(`文件”${file.name}”上传成功`, 'success');
+                    await loadFiles();
                 } else {
-                    let message = '上传失败，请重试';
-                    try {
-                        const response = JSON.parse(xhr.responseText || '{}');
-                        message = response.message || message;
-                    } catch {
-                        // ignore invalid json response
-                    }
-                    showToast(message, 'error');
+                    showToast(response.message || '上传失败', 'error');
                 }
             } finally {
                 finishUpload();
@@ -332,8 +321,9 @@ function uploadFile(file) {
 async function downloadFile(id, fileName) {
     try {
         const response = await fetch(`${API_BASE}/download/${encodeURIComponent(id)}`);
+        const contentType = response.headers.get('Content-Type') || '';
 
-        if (!response.ok) {
+        if (contentType.includes('application/json')) {
             const error = await response.json();
             showToast(error.message || '下载失败', 'error');
             return;
@@ -349,7 +339,7 @@ async function downloadFile(id, fileName) {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
 
-        showToast(`文件“${fileName}”下载成功`, 'success');
+        showToast(`文件”${fileName}”下载成功`, 'success');
     } catch (error) {
         showToast(`下载失败: ${error.message}`, 'error');
     }
@@ -366,8 +356,8 @@ async function deleteFile(id, fileName) {
         });
         const data = await response.json();
 
-        if (data.success) {
-            showToast(`文件“${fileName}”删除成功`, 'success');
+        if (data.code === 0) {
+            showToast(`文件”${fileName}”删除成功`, 'success');
             await loadFiles();
         } else {
             showToast(data.message || '删除失败', 'error');
@@ -430,11 +420,11 @@ async function confirmRename() {
         });
         const data = await response.json();
 
-        if (data.success) {
+        if (data.code === 0) {
             renameSucceeded = true;
             showToast('文件名已更新', 'success');
         } else {
-            if (response.status === 400) {
+            if (data.code >= 200 && data.code < 300) {
                 setRenameValidation(data.message || '文件名无效');
             }
             showToast(data.message || '重命名失败', 'error');

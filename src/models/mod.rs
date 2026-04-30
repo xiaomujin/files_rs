@@ -1,3 +1,3 @@
 mod files;
 
-pub use files::{FileInfo, FileListResponse, RenameRequest, UploadResponse};
+pub use files::{FileInfo, FileListData, RenameData, RenameRequest};

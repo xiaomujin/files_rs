@@ -4,3 +4,4 @@
 /uploads
 /.claude
 /.cargo/config.toml
+/docs
